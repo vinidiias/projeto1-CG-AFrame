@@ -213,6 +213,8 @@
           colorHead: { type: 'string', default: '#FFCC99' }, // Caminho da imagem ou cor
           colorBody: { type: 'color', default: '#0000FF' },
           colorLimbs: { type: 'color', default: '#000000' },
+          camisa: { type: 'string', default: 'black'},
+          rebola: { type: 'boolean', default: false}
         },
 
         init: function () {
@@ -235,7 +237,13 @@
           body.setAttribute('radius', '0.2');
           body.setAttribute('height', '0.6');
           body.setAttribute('position', '0 1.2 0');
-          body.setAttribute('color', this.data.colorBody);
+          console.log(this.data.rebola)
+          if(this.data.rebola === true) body.setAttribute('rotation', '-30 0 0');
+          if (this.data.camisa.startsWith('img/') || this.data.camisa.startsWith('./') || this.data.camisa.startsWith('/')) {
+            body.setAttribute('material', `src: ${this.data.camisa}`);
+          } else {
+            body.setAttribute('color', this.data.camisa);
+          }
           this.el.appendChild(body);
 
           // Braço esquerdo
@@ -259,18 +267,20 @@
           // Perna esquerda
           const leftLeg = document.createElement('a-box');
           leftLeg.setAttribute('width', '0.15');
-          leftLeg.setAttribute('height', '0.6');
+          leftLeg.setAttribute('height', `${this.data.rebola ? '0.8' : '0.6'}`);
           leftLeg.setAttribute('depth', '0.15');
-          leftLeg.setAttribute('position', '-0.15 0.6 0');
+          if(this.data.rebola === true) leftLeg.setAttribute('animation', "property: scale; dir: alternate; dur: 100; to: 1.1 1.1 1.1; loop: true");
+          leftLeg.setAttribute('position', `-0.15 0.6 ${this.data.rebola ? '0.2' : '0'}`);
           leftLeg.setAttribute('color', this.data.colorLimbs);
           this.el.appendChild(leftLeg);
 
           // Perna direita
           const rightLeg = document.createElement('a-box');
           rightLeg.setAttribute('width', '0.15');
-          rightLeg.setAttribute('height', '0.6');
+          rightLeg.setAttribute('height', `${this.data.rebola ? '0.8' : '0.6'}`);
           rightLeg.setAttribute('depth', '0.15');
-          rightLeg.setAttribute('position', '0.15 0.6 0');
+          if(this.data.rebola === true) rightLeg.setAttribute('animation', "property: scale; dir: alternate; dur: 100; to: 1.1 1.1 1.1; loop: true");
+          rightLeg.setAttribute('position', `0.15 0.6 ${this.data.rebola ? '0.2' : '0'}`);
           rightLeg.setAttribute('color', this.data.colorLimbs);
           this.el.appendChild(rightLeg);
         },
@@ -345,6 +355,7 @@
           this.time = 0; // Variável para rastrear o tempo acumulado
         },
 
+      
         // Função para criar as rodas
         createCorrimao: function (x, y, z) {
           const corrimao = document.createElement('a-box');
@@ -358,54 +369,90 @@
           this.el.appendChild(corrimao);
         },
       });
+
+            // Componente de Pulo Contínuo
+            AFRAME.registerComponent('jump-loop', {
+        schema: {
+          height: { type: 'number', default: 2 }, // Altura máxima do pulo
+          duration: { type: 'number', default: 1000 }, // Duração do ciclo completo (em ms)
+        },
+
+        init: function () {
+          const el = this.el;
+          const data = this.data;
+
+          // Configurar a animação contínua
+          el.setAttribute('animation', {
+            property: 'position.y',
+            to: data.height + el.object3D.position.y,
+            dur: data.duration / 2,
+            dir: 'alternate',
+            loop: true,
+            easing: 'easeInOutSine'
+          });
+        }
+      });
     </script>
-
     <a-scene physics>
-    <a-entity position="0 1 -2.2" skate mortal="xMin: -5.6; xMax:5.6; speed:1.5; alturaY: 0.6; depth: 1.5">
-      <a-entity person="colorHead: img/rosto.png;" position="0 -0.1 -3" ></a-entity>
-    </a-entity>
 
+    <!-- BONECO GRIDANDO NO CORRIMAO -->
     <a-entity position="2.8 0.6 0" rotation="0 90 0" skate grind="xMin: -6.4; xMax:6.5; speed:1.5; profundidade: 7.5">
-      <a-entity person="colorHead: img/rosto.png;" position="0 -0.1 -3" ></a-entity>
+      <a-entity person="colorHead: img/rosto.png; camisa: img/camisa-brasil2.png" position="0 -0.1 -3" ></a-entity>
     </a-entity>
 
-    <a-box position="2.8 1 13" height="2" material="src:img/caixa-jbl.png" animation="property: scale; dir: alternate; dur: 100; to: 1.1 1.1 1.1; loop: true">
-      <a-sound src="musica/dingo-bel.mp3" autoplay="true" loop="true" volume="1" volume="2d"></a-sound>
-    </a-box>
-
+    <!-- CORRIMAO -->
     <a-entity position="2.7 1 8" rotation="0 90 0" corrimao ></a-entity>
 
+    <!-- BONECO DANDO BACKFLIP NO QUARTER -->
+    <a-entity position="0 1 -2.2" skate mortal="xMin: -5.6; xMax:5.6; speed:1.5; alturaY: 0.6; depth: 1.5">
+      <a-entity person="colorHead: img/rosto.png; camisa: img/camisa-lacoste.png" position="0 -0.1 -3" ></a-entity>
+    </a-entity>
+
+    <!-- Base da Rampa -->
+    <a-box position="0 0.25 -5" material="src:img/pista-quarter.jpg" width="6" height="0.5" depth="4"></a-box>
+    <a-box position="-3.2 1 -5" material="src:img/pista-quarter.jpg" width="0.5" height="2" depth="4"  rotation="0 0 45"></a-box>
+    <a-box position="3.2 1 -5" material="src:img/pista-quarter.jpg" width="0.5" height="2" depth="4" rotation="0 0 -45"></a-box>
+    <a-box position="0 0.25 -5" material="src:img/pista-quarter.jpg" width="6" height="0.5" depth="4"></a-box>
+
+    <!-- CAIXA DE SOM SKATE SABEM -->
+    <a-box position="0 1 -8" height="2" material="src:img/caixa-jbl.png" animation="property: scale; dir: alternate; dur: 100; to: 1.1 1.1 1.1; loop: true">
+      <a-sound src="musica/charlie-brown.mp3" autoplay="true" loop="true" volume="1" volume="2d"></a-sound>
+    </a-box>
+
+    <!-- BONECO PULADO ESCADA -->
+    <a-entity position="0 0 20" jump="xMin: 0; xMax: 7 speed: 2; altura: 1" person="colorHead: img/rosto.png; camisa: img/camisa-adidas.png">
+      <a-entity position="0 0.1 3" skate flip="rotationLimit: 10; speed: 2"></a-entity>
+    </a-entity>
+
+    <!--ESCADA-->
+    <a-box position="0 1 20" material="src:img/pista-quarter.jpg" height="2.5" width="3" depth="3"></a-box>
+    <a-box position="1 1 20" material="src:img/pista-quarter.jpg" height="1.5" width="3" depth="3"></a-box>
+    <a-box position="2 1 20" material="src:img/pista-quarter.jpg" height="1" width="3" depth="3"></a-box>
+    <a-box position="3 0.5 20" material="src:img/pista-quarter.jpg" height="1" width="3" depth="3"></a-box>
+
+    <a-entity position="-10.8 0.6 21" rotation="0 -90 0" skate >
+      <a-entity person="colorHead: img/rosto.png; camisa: img/camisa-nike.png" position="0 -0.1 -3" animation="property: scale; dir: alternate; dur: 100; to: 1.1 1.1 1.1; loop: true"></a-entity>
+    </a-entity>
+
+    <a-entity position="-4.8 0.6 22" rotation="0 180 0" skate >
+      <a-entity person="colorHead: img/rosto.png; camisa: img/camisa-brasil.png" position="0 -0.1 -3" animation="property: scale; dir: alternate; dur: 100; to: 1.1 1.1 1.1; loop: true"></a-entity>
+    </a-entity>
+
+    <a-entity person="colorHead: img/rosto.png; rebola: true; camisa: img/flamengo.png" position="-4.8 0.2 19" ></a-entity>
+
+    <!-- CAIXA DE SOM DINGOBEL -->
+    <a-box position="-4.8 1 22" height="2" material="src:img/caixa-jbl.png" animation="property: scale; dir: alternate; dur: 100; to: 1.1 1.1 1.1; loop: true">
+      <a-sound src="musica/dingo-bel.mp3" autoplay="true" loop="true" volume="0.5" volume="2d"></a-sound>
+    </a-box>
+
+    <!-- CHAO DA PISTA -->
     <a-box position="0 0.25 1"
-      rotation="0 90 0" material="src:img/pista-quarter.jpg" width="50" height="0.5" depth="20"></a-box>
+    rotation="0 90 0" material="src:img/pista-quarter.jpg" width="50" height="0.5" depth="20"></a-box>
 
-      <!-- Base da Rampa -->
-      <a-box position="0 0.25 -5" material="src:img/pista-quarter.jpg" width="6" height="0.5" depth="4"></a-box>
+    <!-- CHAO -->
+    <a-plane rotation="-90 0 0" width="1000" height="1000" material="src:img/chao.png"  height="10" ></a-plane>
+    <a-sky material="src:img/pista.jpg" ></a-sky>
 
-      <!-- Lado Esquerdo da Rampa -->
-      <a-box position="-3.2 1 -5" material="src:img/pista-quarter.jpg" width="0.5" height="2" depth="4"  rotation="0 0 45"></a-box>
-
-      <!-- Lado Direito da Rampa -->
-      <a-box position="3.2 1 -5" material="src:img/pista-quarter.jpg" width="0.5" height="2" depth="4" rotation="0 0 -45"></a-box>
-
-      <a-box position="0 0.25 -5" material="src:img/pista-quarter.jpg" width="6" height="0.5" depth="4"></a-box>
-
-      <a-box position="0 1 -8" height="2" material="src:img/caixa-jbl.png" animation="property: scale; dir: alternate; dur: 100; to: 1.1 1.1 1.1; loop: true">
-        <a-sound src="musica/charlie-brown.mp3" autoplay="true" loop="true" volume="1" volume="2d"></a-sound>
-      </a-box>
-
-      <!--ESCADA-->
-      <a-entity position="0 0 20" jump="xMin: 0; xMax: 7 speed: 2; altura: 1" person="colorHead: img/rosto.png;">
-        <a-entity position="0 0.1 3" skate flip="rotationLimit: 10; speed: 2">
-      </a-entity>
-      </a-entity>
-      <a-box position="0 1 20" material="src:img/pista-quarter.jpg" height="2.5" width="3" depth="3"></a-box>
-      <a-box position="1 1 20" material="src:img/pista-quarter.jpg" height="1.5" width="3" depth="3"></a-box>
-      <a-box position="2 1 20" material="src:img/pista-quarter.jpg" height="1" width="3" depth="3"></a-box>
-      <a-box position="3 0.5 20" material="src:img/pista-quarter.jpg" height="1" width="3" depth="3"></a-box>
-
-
-      <a-plane rotation="-90 0 0" width="1000" height="1000" material="src:img/chao.png"  height="10" ></a-plane>
-      <a-sky material="src:img/pista.jpg" ></a-sky>
-
+    </a-scene>
   </body>
 </html>
